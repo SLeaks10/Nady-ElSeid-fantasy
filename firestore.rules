@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn()
+        && request.auth.token.email == 'homeisseif@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+
+    // League data: anyone can read, only the admin can change
+    match /league/{id}    { allow read: if true; allow write: if isAdmin(); }
+    match /players/{id}   { allow read: if true; allow write: if isAdmin(); }
+    match /gameweeks/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /fixtures/{id}  { allow read: if true; allow write: if isAdmin(); }
+    match /news/{id}      { allow read: if true; allow write: if isAdmin(); }
+
+    // Each manager writes only their own team; the admin can edit any team
+    match /squads/{uid} {
+      allow read: if true;
+      allow write: if isAdmin() || (signedIn() && request.auth.uid == uid);
+    }
+
+    // Display names of managers
+    match /profiles/{uid} {
+      allow read: if true;
+      allow write: if signedIn() && request.auth.uid == uid;
+    }
+  }
+}
