@@ -853,7 +853,7 @@ function claimBox(asAdmin){
   const mine=S.squads[S.me.id];
   if(mine&&mine.teams&&Object.keys(mine.teams).length)return'';
   if(!unclaimedTeams().length)return'';
-  return'<div class="panel" style="margin-top:14px"><h2>Load my team</h2><p class="muted" style="margin:0 0 10px">Had a team on the old league link, or did the admin make one for you? Type your team name or your name here to load it. You keep all its picks, points and predictions.</p>'+
+  return'<div class="panel" style="margin-bottom:14px;border:2px solid var(--accent)"><h2>Load my team</h2><p class="muted" style="margin:0 0 10px">Had a team on the old league link, or did the admin make one for you? Type your team name or your name here to load it. You keep all its picks, points and predictions.</p>'+
     '<div class="formrow"><label class="f">Team or player name<input type="text" id="claimName" maxlength="40" autocomplete="off"></label><button class="btn primary" data-act="claim-team">Load team</button></div>'+(S.claimMsg?'<p style="color:var(--bad);margin-top:8px">'+esc(S.claimMsg)+'</p>':'')+'</div>';
 }
 const normName=t=>String(t||'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
@@ -981,7 +981,7 @@ function teamView(){
   }
   const bench=bN?'<div class="bench"><div class="pitems">'+bcells.join('')+'</div></div><div class="subs"><b>Substitutes</b><small>If a starter does not play, the first bench player who fits that position comes on automatically.</small></div>':'';
   const nameRow=(editable?'<label class="f" style="margin-bottom:12px">Username<input type="text" id="userName" data-in="uname" maxlength="30" placeholder="Your name" value="'+esc(d.username)+'"></label><label class="f" style="margin-bottom:12px">Team name<input type="text" id="teamName" data-in="tname" maxlength="30" placeholder="e.g. Sunday Legends" value="'+esc(d.teamName)+'"></label>':'');
-  return banner+deadlineHtml(dl)+lockMsg+
+  return claimBox(asAdmin)+banner+deadlineHtml(dl)+lockMsg+
     '<div class="teamgrid"><div>'+nameRow+
     '<div class="stats3"><div class="stat"><span>Budget left</span><b class="'+(left<-1e-9?'bad':'')+'">'+fp(left)+'</b></div>'+
     '<div class="stat"><span>Squad</span><b>'+d.picks.length+'/'+S.cfg.squadSize+'</b></div>'+
@@ -993,7 +993,7 @@ function teamView(){
     '<div class="panel"><h2>Player pool</h2>'+
     '<div class="chips">'+['ALL',...POS].map(p=>fchip('ppos',p,p==='ALL'?'All':p,S.ppos===p)).join('')+'</div>'+
     '<input type="text" id="search" data-in="search" placeholder="Search players" value="'+esc(S.search)+'" style="margin-bottom:8px">'+
-    '<div class="pool" id="pool">'+poolHtml()+'</div></div></div>'+claimBox(asAdmin);
+    '<div class="pool" id="pool">'+poolHtml()+'</div></div></div>';
 }
 
 function fixturesView(){
