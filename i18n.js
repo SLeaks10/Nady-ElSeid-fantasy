@@ -208,6 +208,7 @@
     [/^Bench has (\d+) players$/, 'الدكة بها $1 لاعبين'],
     [/^Within budget \(([\d.]+) of ([\d.]+)\)$/, 'ضمن الميزانية ($1 من $2)'],
     [/^Wk (\d+)$/, 'أسبوع $1'],
+    [/^vs (.+)$/, 'ضد $1'],
     [/^Week (\d+)$/, 'الأسبوع $1'],
     [/^Fantasy GW (\d+)$/, 'جولة الفانتازي $1'],
     [/^([\d.]+) pts$/, '$1 نقطة'],
@@ -233,6 +234,12 @@
         if (P[i][0].test(t)) { out = t.replace(P[i][0], P[i][1]); break; }
       }
     }
+    if (out == null && t.indexOf(' · ') > 0) {
+      var parts = t.split(' · '), changed = false;
+      parts = parts.map(function (x) { var y = tr(x); if (y !== x) changed = true; return y; });
+      if (changed) out = parts.join(' · ');
+    }
+    if (out == null && /^vs /.test(t)) out = 'ضد ' + t.slice(3);
     if (out == null) return str;
     var lead = str.match(/^\s*/)[0], trail = str.match(/\s*$/)[0];
     return lead + out + trail;
