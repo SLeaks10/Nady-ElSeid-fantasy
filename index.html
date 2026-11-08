@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="only light"><meta name="darkreader-lock"><style>:root{color-scheme:only light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <link rel="icon" href="img/icon.png" type="image/png">
 <title>Fantasy Nady El Seid</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Hanken+Grotesk:wght@400;500;700&family=Cairo:wght@500;700;800&display=swap">
@@ -286,7 +286,7 @@ td.pt{font:800 18px/1 var(--font-display);text-align:right}
 .pitch .pitems,.bench .pitems{gap:4px}
 /* ===== app theme: purple + neon green, fantasy-app look ===== */
 :root,:root:not([data-theme="dark"]),:root[data-theme="light"]{
-  color-scheme:light; --card:#ffffff; --tabbar:#ffffff; --btnbg:#ffffff; --btnline:#cdbfd4; --shadow:0 1px 3px rgba(55,0,60,.12);
+  color-scheme:only light; --card:#ffffff; --tabbar:#ffffff; --btnbg:#ffffff; --btnline:#cdbfd4; --shadow:0 1px 3px rgba(55,0,60,.12);
   --bg:#f1edf4; --surface:#ffffff; --surface2:#ebe5f0; --ink:#37003c; --muted:#6d5a73; --line:#dcd2e2;
   --accent:#37003c; --accent-ink:#00ff85; --bad:#e90052; --good:#00a85a;
   --pitch-a:#2d8a57; --pitch-b:#27804f;
@@ -326,7 +326,7 @@ body{background:var(--bg);padding-top:0}
 .bench{border-color:#00ff85}
 .srow .armband,.armband{background:#00ff85;color:#37003c}
 
-.themebtn{font:700 14px/1 var(--font-body);background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.35);padding:7px 10px;border-radius:4px;min-width:36px}
+.themebtn{display:inline-flex;align-items:center;justify-content:center;font:700 14px/1 var(--font-body);background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.35);padding:7px 10px;border-radius:4px;min-width:36px}
 :root[data-theme="dark"]{
   color-scheme:dark; --card:#2a1233; --tabbar:#241029; --btnbg:#33173e; --btnline:#5a3668; --shadow:0 1px 3px rgba(0,0,0,.5);
   --bg:#180820; --surface:#2a1233; --surface2:#381845; --ink:#f4eaf7; --muted:#b9a3c2; --line:#47264f;
@@ -645,7 +645,9 @@ const S={cfg:{...DEF},players:{},gws:{},squads:{},fixtures:{},news:{},loaded:{cf
   editTarget:null,draft:null,draftKey:null,dirty:false,
   adminSec:'gameweeks',adminGw:null,sd:null,sdKey:null,sdirty:false,confirm:null,err:null,pending:false};
 
-try{S.theme=localStorage.getItem('theme')==='dark'?'dark':'light'}catch(e){S.theme='light'}
+function setSchemeMeta(){const m=document.querySelector('meta[name=color-scheme]');if(m)m.content=S.theme==='dark'?'only dark':'only light'}
+try{const t=localStorage.getItem('theme');S.theme=(t==='dark'||t==='light')?t:((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light')}catch(e){S.theme='light'}
+setSchemeMeta();
 document.documentElement.dataset.theme=S.theme;
 try{const l=localStorage.getItem('lang');S.lang=(l==='ar'||l==='en')?l:((navigator.language||'').toLowerCase().startsWith('ar')?'ar':'en')}catch(e){}
 let db=null,user=null;
@@ -721,7 +723,7 @@ function gwPill(){
 function mast(){
   const g=activeGw();
   const next=g?'<p class="sub next">GW '+g.n+(g.opponent?' · vs <bdi>'+esc(g.opponent)+'</bdi>':'')+(g.date?' · '+esc(g.date):'')+'</p>':'';
-  return'<header class="mast"><div class="mast-top"><span class="kicker">Fantasy league</span><div class="mtr">'+(S.me.isOwner?'<span class="adminbadge">Admin</span>':'')+(S.me.id?'<button class="langbtn" data-act="signout" title="'+esc(S.me.name)+'">Sign out</button>':'<button class="langbtn" data-act="signin">Sign in</button>')+'<button class="themebtn" data-act="theme" aria-label="Toggle dark mode" title="Dark / light">'+(S.theme==='dark'?'☀':'☾')+'</button><button class="langbtn" data-act="lang" data-v="'+(S.lang==='ar'?'en':'ar')+'">'+(S.lang==='ar'?'English':'عربي')+'</button><span class="gwpill">'+esc(gwPill())+'</span></div></div>'+
+  return'<header class="mast"><div class="mast-top"><span class="kicker">Fantasy league</span><div class="mtr">'+(S.me.isOwner?'<span class="adminbadge">Admin</span>':'')+(S.me.id?'<button class="langbtn" data-act="signout" title="'+esc(S.me.name)+'">Sign out</button>':'<button class="langbtn" data-act="signin">Sign in</button>')+'<button class="themebtn" data-act="theme" aria-label="Toggle dark mode" title="Dark / light">'+(S.theme==='dark'?'<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></g></svg>':'<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>')+'</button><button class="langbtn" data-act="lang" data-v="'+(S.lang==='ar'?'en':'ar')+'">'+(S.lang==='ar'?'English':'عربي')+'</button><span class="gwpill">'+esc(gwPill())+'</span></div></div>'+
     '<div class="brand"><img class="logo" src="img/logo.jpg" alt="Club logo" width="84" height="84"><h1 dir="auto">'+esc(S.cfg.name)+'</h1></div>'+next+
     '<p class="sub">Pick '+S.cfg.squadSize+' players for '+fp(S.cfg.budget)+' or less. Your captain scores double, or 2.5 times if it is a goalkeeper.</p></header>';
 }
@@ -1451,7 +1453,7 @@ async function saveCfg(){
 const A={
   async signin(){try{await window.fantasyAuth.signIn()}catch(e){toast(window.fantasyAuth.inAppBrowser?'Open this link in Chrome or Safari to sign in.':'Sign-in did not work. Try again.',true)}},
   async signout(){await window.fantasyAuth.signOut()},
-  theme(){S.theme=S.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=S.theme;try{localStorage.setItem('theme',S.theme)}catch(e){}},
+  theme(){S.theme=S.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=S.theme;setSchemeMeta();try{localStorage.setItem('theme',S.theme)}catch(e){}},
   lang(t){S.lang=t.dataset.v==='ar'?'ar':'en';try{localStorage.setItem('lang',S.lang)}catch(e){}},
   async 'unlock-admin'(){const v=(($('adminPin')||{}).value||'').trim();let ok=false;try{ok=(await sha(v))===ADMIN_HASH}catch(e){}if(ok){S.adminOk=true;S.pinBad=false;try{sessionStorage.setItem('adminOk','1')}catch(e){}}else{S.pinBad=true;toast('Wrong password.',true)}},
   chip(t){const d=S.draft,id=t.dataset.id;if(!d||!S.editableNow)return;const sq=S.squads[S.editTarget||S.me.id],gw=activeGw();if(d.chip===id)d.chip=null;else{if(d.chip||!gw||chipLeft(sq,id,gw.n)<=0)return;d.chip=id}S.dirty=true},
