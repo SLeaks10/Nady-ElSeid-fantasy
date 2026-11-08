@@ -95,6 +95,7 @@ textarea{min-height:110px;resize:vertical}
 button.row:hover{background:var(--surface2)}
 .row.head{font:700 11px/1 var(--font-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-block:10px;background:var(--surface2)}
 .row .r{text-align:right}
+.row.ov{grid-template-columns:36px minmax(0,1fr) 74px}
 .rank{font:800 26px/1 var(--font-display);text-align:center}
 .rank.first{background:var(--armband);color:var(--armband-ink);border-radius:4px;padding:5px 0}
 .who{display:flex;flex-direction:column;min-width:0}
@@ -766,13 +767,14 @@ function boardView(){
     body=notice('No teams yet','<p>Open the My team tab, name your side and pick your squad.</p>');
   }else{
     const h1=sel==='all'?(last?'GW '+last.n:'Last GW'):'Hit',h2=sel==='all'?'Total':'GW '+sel;
-    body='<div class="board"><div class="row head"><span>#</span><span>Team</span><span class="r">'+h1+'</span><span class="r">'+h2+'</span></div>'+
+    const ov=sel==='all';
+    body='<div class="board"><div class="row head'+(ov?' ov':'')+'"><span>#</span><span>Team</span>'+(ov?'':'<span class="r">'+h1+'</span>')+'<span class="r">'+h2+'</span></div>'+
       rows.map((m,i)=>{
         const mv=sel==='all'&&prevRank[m.id]?prevRank[m.id]-(i+1):0;
         const arrow=sel==='all'&&fin.length>=2?(mv>0?'<small class="mv up">\u25b2'+mv+'</small>':mv<0?'<small class="mv down">\u25bc'+(-mv)+'</small>':'<small class="mv same">\u2013</small>'):'';
-        return'<button class="row" data-act="open-sheet" data-id="'+esc(m.id)+'"><span class="rankcell"><span class="rank'+(i===0&&m.key>0?' first':'')+'">'+(i+1)+'</span>'+arrow+'</span>'+
+        return'<button class="row'+(ov?' ov':'')+'" data-act="open-sheet" data-id="'+esc(m.id)+'"><span class="rankcell"><span class="rank'+(i===0&&m.key>0?' first':'')+'">'+(i+1)+'</span>'+arrow+'</span>'+
         '<span class="who"><b>'+esc(m.name)+'</b><small>'+esc(m.mgr)+'</small></span>'+
-        '<span class="pts sm">'+fpts(m.a)+'</span><span class="pts">'+fpts(m.b)+'</span></button>'}).join('')+'</div>';
+        (ov?'':'<span class="pts sm">'+fpts(m.a)+'</span>')+'<span class="pts">'+fpts(m.b)+'</span></button>'}).join('')+'</div>';
   }
   let winHtml='';
   if(last&&all.length){
