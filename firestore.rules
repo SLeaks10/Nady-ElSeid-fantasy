@@ -7,6 +7,24 @@ service cloud.firestore {
         && request.auth.token.email == 'homeisseif@gmail.com'
         && request.auth.token.email_verified == true;
     }
+    function myEmail() {
+      return (signedIn() && request.auth.token.get('email_verified', false) == true)
+        ? request.auth.token.email : '';
+    }
+    // The team the admin assigned to this person's email, if any
+    function invitedTeam() {
+      return (myEmail() != ''
+        && exists(/databases/$(database)/documents/invites/$(myEmail())))
+        ? get(/databases/$(database)/documents/invites/$(myEmail())).data.team : '';
+    }
+    // A manager may copy ("load") a team only if it is not locked to someone else's email
+    function claimOk() {
+      let c = request.resource.data.get('claimed', null);
+      return c == null
+        || (resource != null && resource.data.get('claimed', null) == c)
+        || invitedTeam() == c
+        || !get(/databases/$(database)/documents/squads/$(c)).data.get('locked', false);
+    }
 
     // League data: anyone can read, only the admin can change
     match /league/{id}    { allow read: if true; allow write: if isAdmin(); }
@@ -18,7 +36,14 @@ service cloud.firestore {
     // Each manager writes only their own team; the admin can edit any team
     match /squads/{uid} {
       allow read: if true;
-      allow write: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create, update: if isAdmin() || (signedIn() && request.auth.uid == uid && claimOk());
+      allow delete: if isAdmin() || (signedIn() && request.auth.uid == uid);
+    }
+
+    // Email -> team links set by the admin; each person can only see their own
+    match /invites/{email} {
+      allow read: if isAdmin() || (myEmail() != '' && myEmail() == email);
+      allow write: if isAdmin();
     }
 
     // Display names of managers

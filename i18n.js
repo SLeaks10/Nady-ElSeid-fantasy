@@ -148,6 +148,9 @@
     'Transfer hit': 'خصم التبديلات', 'SUB': 'بديل', 'ON': 'دخل',
 
     // admin
+    'Gmail that loads this team': 'الإيميل الذي يفتح هذا الفريق', 'Update': 'تحديث', 'Signed in on the new site': 'سجّل الدخول على الموقع الجديد',
+    "Add each manager's Gmail. When they sign in with it, their team loads by itself, and nobody else can take that team.": 'أضف إيميل جوجل لكل مدرب. عندما يسجّل الدخول به، يظهر فريقه تلقائياً، ولا يستطيع أحد غيره أخذ الفريق.',
+    'That email does not look right.': 'هذا الإيميل غير صحيح.', 'Email removed.': 'تم حذف الإيميل.',
     'Admin is locked': 'الإدارة مقفلة', 'Enter the admin password to continue.': 'أدخل كلمة مرور المشرف للمتابعة.', 'Password': 'كلمة المرور',
     'Unlock': 'فتح', 'Wrong password.': 'كلمة مرور خاطئة.', 'Admin only': 'للمشرف فقط', 'Only the league admin can use Admin.': 'المشرف فقط يمكنه استخدام الإدارة.',
     'Players': 'اللاعبون', 'Managers': 'المدربون', 'Settings': 'الإعدادات',

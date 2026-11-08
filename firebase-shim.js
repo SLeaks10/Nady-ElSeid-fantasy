@@ -53,7 +53,7 @@
         var name = displayName(u);
         fs.doc('profiles/' + u.uid).set({ name: name }, { merge: true }).catch(function () {});
         var email = (u.email || '').toLowerCase();
-        return { id: u.uid, name: name, isOwner: !!(u.emailVerified && ADMIN_EMAILS.indexOf(email) >= 0) };
+        return { id: u.uid, name: name, email: u.emailVerified ? email : '', isOwner: !!(u.emailVerified && ADMIN_EMAILS.indexOf(email) >= 0) };
       });
     },
     profiles: function (ids) {

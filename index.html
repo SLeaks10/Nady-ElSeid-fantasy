@@ -852,7 +852,7 @@ function fixtureTag(gw){
 }
 function unclaimedTeams(){
   const all=S.allSquads||S.squads,claimed=new Set(Object.values(all).map(x=>x.claimed).filter(Boolean));
-  return Object.entries(all).filter(([id,x])=>id.startsWith('m-')&&!x.managerId&&!claimed.has(id)&&x.teams&&Object.keys(x.teams).length).map(([id,x])=>({id,...x}));
+  return Object.entries(all).filter(([id,x])=>id.startsWith('m-')&&!x.managerId&&!x.locked&&!claimed.has(id)&&x.teams&&Object.keys(x.teams).length).map(([id,x])=>({id,...x}));
 }
 function claimBox(asAdmin){
   if(asAdmin||!S.me.id)return'';
@@ -871,11 +871,26 @@ async function claimTeam(){
   if(!hit.length)hit=list.filter(x=>normName(x.teamName).includes(q)||normName(x.username).includes(q));
   if(!hit.length){S.claimMsg='No team found with that name.';return}
   if(hit.length>1){S.claimMsg='More than one team matches. Type the full name.';return}
-  const src=hit[0];
-  const doc={teamName:src.teamName||'',username:src.username||S.me.name||'',managerId:S.me.id,teams:src.teams,claimed:src.id};if(src.pred)doc.pred=src.pred;if(src.extraFree)doc.extraFree=src.extraFree;
+  await copyTeam(hit[0]);
+}
+async function copyTeam(src){
+  const doc={teamName:src.teamName||'',username:src.username||S.me.name||'',managerId:S.me.id,teams:src.teams||{},claimed:src.id};if(src.pred)doc.pred=src.pred;if(src.extraFree)doc.extraFree=src.extraFree;
   await db.doc('squads/'+S.me.id).set(doc);
   S.claimMsg='';S.dirty=false;S.draftKey=null;
   toast('Loaded "'+(src.teamName||'your team')+'".');
+}
+async function autoClaim(){
+  if(S.autoTried||!S.me.id||!S.me.email||!S.allSquads||S.allSquads[S.me.id])return;
+  S.autoTried=true;
+  try{
+    const inv=await db.doc('invites/'+S.me.email).get();
+    if(!inv.exists)return;
+    const tid=inv.data().team,src=S.allSquads[tid];
+    const taken=Object.values(S.allSquads).some(x=>x.claimed===tid);
+    if(!src||taken)return;
+    await copyTeam({id:tid,...src});
+    render(true);
+  }catch(e){}
 }
 const CHIPS=[
  ['wildcard','Wildcard','Make as many transfers as you like this gameweek with no points hit. Your new team stays for the next gameweeks.'],
@@ -1335,10 +1350,12 @@ function adminNews(){
 }
 function adminManagers(){
   const list=Object.entries(S.squads).map(([id,sq])=>({id,sq}));
-  return'<div class="panel"><h2>Managers</h2>'+
+  const em={};Object.entries(S.invites||{}).forEach(([e,v])=>{if(v&&v.team)em[v.team]=e});
+  const emailRow=id=>id.startsWith('m-')?'<div class="formrow" style="grid-column:1/-1;margin-top:6px"><label class="f">Gmail that loads this team<input type="email" id="em-'+esc(id)+'" placeholder="name@gmail.com" autocomplete="off" value="'+esc(em[id]||'')+'"></label><button class="btn small" data-act="save-email" data-id="'+esc(id)+'">'+(em[id]?'Update':'Save')+'</button></div>':'<small class="muted" style="grid-column:1/-1">Signed in on the new site</small>';
+  return'<div class="panel"><h2>Managers</h2><p class="muted" style="margin:0 0 10px">Add each manager\'s Gmail. When they sign in with it, their team loads by itself, and nobody else can take that team.</p>'+
     (list.length?list.map(({id,sq})=>'<div class="srow" style="grid-template-columns:minmax(0,1fr) auto auto"><span class="who"><b>'+esc(sq.teamName||'Unnamed team')+'</b><small>'+esc(mgrName(sq))+'</small></span>'+
       '<button class="btn small" data-act="edit-mgr" data-id="'+esc(id)+'">Edit team</button>'+
-      '<button class="btn small danger" data-act="del-mgr" data-id="'+esc(id)+'">'+(S.confirm==='m'+id?'Confirm remove':'Remove')+'</button></div>').join(''):'<p class="muted">Nobody has joined yet.</p>')+
+      '<button class="btn small danger" data-act="del-mgr" data-id="'+esc(id)+'">'+(S.confirm==='m'+id?'Confirm remove':'Remove')+'</button>'+emailRow(id)+'</div>').join(''):'<p class="muted">Nobody has joined yet.</p>')+
     '</div><div class="panel"><h2>Add a manager yourself</h2><p class="muted">Use this for friends who can only view this page. Send them the league link to follow along, collect their picks in your group chat, and enter them here.</p>'+
     '<div class="formrow"><label class="f">Team name<input type="text" id="mgrName" maxlength="30"></label><button class="btn primary" data-act="add-mgr">Add manager</button></div></div>';
 }
@@ -1515,6 +1532,22 @@ const A={
   'add-player':addPlayer,
   bulk,
   'add-mgr':addMgr,
+  async 'save-email'(t){
+    const id=t.dataset.id,inp=$('em-'+id),email=String((inp||{}).value||'').trim().toLowerCase();
+    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('That email does not look right.',true);return}
+    const old=Object.entries(S.invites||{}).filter(([e,v])=>v&&v.team===id).map(([e])=>e);
+    for(const e of old)if(e!==email)await db.doc('invites/'+e).delete();
+    if(email){
+      const other=(S.invites||{})[email];
+      if(other&&other.team!==id&&S.squads[other.team])await db.doc('squads/'+other.team).update({locked:false});
+      await db.doc('invites/'+email).set({team:id});
+      await db.doc('squads/'+id).update({locked:true});
+      toast('Saved. '+email+' will load this team.');
+    }else{
+      await db.doc('squads/'+id).update({locked:false});
+      toast('Email removed.');
+    }
+  },
   async 'post-news'(){
     const text=($('newsText').value||'').trim();
     if(!text){toast('Write a message first.',true);return}
@@ -1605,7 +1638,7 @@ function sub(ref,key,fn){
 }
 if(db){
   if(user){
-    try{const me=await user.me();S.me={id:me.id||null,name:me.name||'',isOwner:!!me.isOwner}}catch(e){}
+    try{const me=await user.me();S.me={id:me.id||null,name:me.name||'',email:me.email||'',isOwner:!!me.isOwner}}catch(e){}
   }
   sub(db.doc('league/config'),'cfg',s=>{S.cfg=normCfg(s.exists?s.data():null)});
   sub(db.collection('players'),'players',q=>{const o={};q.docs.forEach(d=>{o[d.id]={...d.data(),id:d.id}});S.players=o});
@@ -1623,7 +1656,9 @@ if(db){
       S.profKey=key;
       user.profiles(ids).then(p=>{S.profiles=p;onData()}).catch(()=>{});
     }
+    autoClaim();
   });
+  if(S.me.isOwner)db.collection('invites').onSnapshot(q=>{const o={};q.docs.forEach(d=>{o[d.id]=d.data()});S.invites=o;onData()},()=>{});
 }
 render(true);
 })();

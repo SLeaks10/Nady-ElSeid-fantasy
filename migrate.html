@@ -29,11 +29,11 @@ async function runImport(){
   const flush=async()=>{if(n){await batch.commit();batch=fs.batch();n=0}};
   for(const col of ['league','players','gameweeks','fixtures','news','squads']){
     // remove anything not in the copied data (e.g. test teams), so the site matches the old link exactly
-    const cur=await fs.collection(col).get();let removed=0;
+    const cur=await fs.collection(col).get();let removed=0;const keep={};cur.docs.forEach(d=>{if(d.data().locked)keep[d.id]=true});
     for(const d of cur.docs){if(!(data[col]||{})[d.id]){batch.delete(d.ref);n++;removed++;if(n>=400)await flush()}}
     if(removed)log(col+': removed '+removed);
     for(const [id,doc] of Object.entries(data[col]||{})){
-      batch.set(fs.doc(col+'/'+id),doc);n++;total++;
+      batch.set(fs.doc(col+'/'+id),keep[id]?{...doc,locked:true}:doc);n++;total++;
       if(n>=400)await flush();
     }
     log(col+': '+Object.keys(data[col]||{}).length);
