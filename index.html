@@ -419,6 +419,8 @@ body{background:var(--bg);padding-top:0}
 @media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
 .rules td:first-child{white-space:normal}
 @media (prefers-reduced-motion:no-preference){.pc{transition:transform .12s}.pc:hover{transform:translateY(-2px)}}
+.rdhead{margin:18px 0 0;padding:12px 14px;background:linear-gradient(135deg,#37003c,#5a0a6b);color:#fff;font:800 14px/1 var(--font-body);letter-spacing:.08em;text-transform:uppercase;border-radius:10px;border:0}
+.rdhead span{color:#00ff85}
 </style>
 
 <div class="wrap" id="app">
@@ -1011,8 +1013,9 @@ function fixturesView(){
   const DIFF=[null,['Easy','MID'],['Medium','GK'],['Hard','FWD']];
   const diffTag=f=>DIFF[n(f.diff)]?'<span class="tag '+DIFF[n(f.diff)][1]+'">'+DIFF[n(f.diff)][0]+'</span>':'';
   const rec=played.length?'<div class="rec">'+[['Played',played.length],['Won',W],['Drawn',D],['Lost',L],['Goals',GF+'-'+GA],['Points',W*3+D]].map(x=>'<div class="stat"><span>'+x[0]+'</span><b>'+x[1]+'</b></div>').join('')+'</div>':'';
-  const rows=list.map(f=>{
+  const rows=list.map((f,fi)=>{
     const isNext=next&&next.id===f.id,past=f.date<today;
+    const head=(n(f.round)===2&&(fi===0||n(list[fi-1].round)!==2))?'<div class="rdhead"><span>Second round</span></div>':'';
     let right;
     if(f.bye)right='<span class="status">Bye</span>';
     else if(owner)right='<span class="fxin"><input class="sin" type="number" min="0" inputmode="numeric" data-in="fx" data-id="'+esc(f.id)+'" data-f="scoreFor" aria-label="Our goals, week '+f.week+'" value="'+(f.scoreFor==null?'':esc(f.scoreFor))+'"><span>–</span><input class="sin" type="number" min="0" inputmode="numeric" data-in="fx" data-id="'+esc(f.id)+'" data-f="scoreAgainst" aria-label="Their goals, week '+f.week+'" value="'+(f.scoreAgainst==null?'':esc(f.scoreAgainst))+'">'+(hasRes(f)?'<span class="wdl '+wdl(f)+'">'+wdl(f)+'</span>':'')+'</span>';
@@ -1021,9 +1024,9 @@ function fixturesView(){
     const main=f.bye?'<div class="fxo">Bye week</div><div class="fxm">No match</div>':
       '<div class="fxo"><bdi>'+esc(f.opponent)+'</bdi></div><div class="fxm">'+(f.home===true?'<span class="tag MID">HOME</span>':f.home===false?'<span class="tag DEF">AWAY</span>':'')+
       (f.venue?'<bdi>'+esc(f.venue)+'</bdi>':'')+(f.time?'<span>· '+esc(f.time)+'</span>':'')+(f.gw?'<span class="armband">Fantasy GW '+f.gw+'</span>':'')+(!hasRes(f)?(owner?'<select class="dsel" data-in="fxdiff" data-id="'+esc(f.id)+'" aria-label="Difficulty"><option value="">Difficulty</option>'+[1,2,3].map(i=>'<option value="'+i+'"'+(n(f.diff)===i?' selected':'')+'>'+DIFF[i][0]+'</option>').join('')+'</select>':diffTag(f)):'')+(isNext?'<span class="armband">NEXT</span>':'')+'</div>';
-    return'<div class="fx'+(isNext?' next':'')+'"><div><div class="fxw">Wk '+f.week+'</div><small>'+esc(fmtDate(f.date))+'</small></div><div style="min-width:0">'+main+'</div><div class="fxr">'+right+'</div></div>';
+    return head+'<div class="fx'+(isNext?' next':'')+'"><div><div class="fxw">Wk '+f.week+'</div><small>'+esc(fmtDate(f.date))+'</small></div><div style="min-width:0">'+main+'</div><div class="fxr">'+right+'</div></div>';
   }).join('');
-  return'<p class="muted" style="margin:0 0 12px">Giza region league, Group 4, first round 2026/27. Matches already played do not count in the fantasy game. Fantasy GW 1 is the next match.</p>'+
+  return'<p class="muted" style="margin:0 0 12px">Giza region league, Group 4, 2026/27. Matches played before the game started do not count in the fantasy game.</p>'+
     rec+'<div class="board">'+rows+'</div>'+
     (owner?'<p class="muted" style="margin-top:10px">Type the score as our goals, then their goals. It saves when you leave the box.</p>':'');
 }
@@ -1074,7 +1077,7 @@ function predictView(){
       (n(f.diff)?'<div><span class="tag '+['','MID','GK','FWD'][n(f.diff)]+'">'+['','Easy','Medium','Hard'][n(f.diff)]+'</span></div>':'')+
       '<div class="muted" style="font-size:13px">\u23f0 <span>Predictions close</span>: '+esc(predCloseTxt(f))+', 11:59 PM</div>'+
       '<div class="pc-row"><span class="pc-t">'+club+'</span>'+inp('a',va)+'<span>–</span>'+inp('b',vb)+'<span class="pc-t"><bdi>'+esc(f.opponent)+'</bdi></span></div>'+
-      '<label class="f pc-pl">Top scorer pick (+3)<select data-in="pred" data-id="'+esc(f.id)+'" data-s="pid"'+(S.me.id?'':' disabled')+'><option value="">–</option>'+Object.values(S.players).filter(p=>p.active!==false).sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(p=>'<option value="'+esc(p.id)+'"'+(p.id===vp?' selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></label>'+
+      '<label class="f pc-pl">Player with the most points (+3)<select data-in="pred" data-id="'+esc(f.id)+'" data-s="pid"'+(S.me.id?'':' disabled')+'><option value="">–</option>'+Object.values(S.players).filter(p=>p.active!==false).sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(p=>'<option value="'+esc(p.id)+'"'+(p.id===vp?' selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></label>'+
       '<button class="btn small'+(same?' saved':' primary')+'" data-act="save-pred" data-id="'+esc(f.id)+'"'+(S.me.id?'':' disabled')+'>'+(same?'✓ Saved':'Save prediction')+'</button></div>';
   }).join(''):'<p class="muted">No upcoming match to predict right now.</p>';
   const board=predBoard();
@@ -1084,7 +1087,7 @@ function predictView(){
     return'<h3 style="margin:12px 0 4px">Week '+f.week+' · <bdi>'+esc(f.opponent)+'</bdi>'+(hasRes(f)?' · '+esc(f.scoreFor)+' – '+esc(f.scoreAgainst):'')+'</h3>'+rows.map(r=>'<div class="nrow"><div class="grow"><b>'+esc(r.q.teamName||'Team')+'</b></div><span class="muted">'+esc(r.p.a)+' – '+esc(r.p.b)+(r.p.pid&&S.players[r.p.pid]?' · '+esc(S.players[r.p.pid].name):'')+'</span>'+(r.x==null?'<span class="muted">…</span>':'<span class="tag '+(r.x>=3?'MID':r.x>=1?'GK':'DEF')+'">+'+r.x+'</span>')+'</div>').join('');
   }).join('');
   const note=S.me.id&&!S.squads[S.me.id]?'<p class="muted" style="margin:0 0 10px">Create your team in My team first, then come back to predict.</p>':'';
-  return'<div class="two"><div class="panel"><h2>Predict the score</h2><p class="muted" style="margin:0 0 10px">Guess our score first, then theirs. Exact score earns 3 points, the right result (win, draw or loss) earns 1, and picking the top fantasy scorer of the match earns 3 more. Predictions close at 11:59 PM the day before the match.</p>'+note+cards+'</div>'+
+  return'<div class="two"><div class="panel"><h2>Predict the score</h2><p class="muted" style="margin:0 0 10px">Guess our score first, then theirs. Exact score earns 3 points, the right result (win, draw or loss) earns 1, and picking the player who gets the most fantasy points in the match (not the most goals) earns 3 more. Predictions close at 11:59 PM the day before the match.</p>'+note+cards+'</div>'+
     '<div class="panel"><h2>Predictor table</h2>'+brows+(rev?'<h2 style="margin-top:18px">Locked picks</h2>'+rev:'')+'</div></div>';
 }
 function adminChips(){

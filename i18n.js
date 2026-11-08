@@ -91,6 +91,11 @@
     'Type the score as our goals, then their goals. It saves when you leave the box.': 'اكتب النتيجة: أهدافنا ثم أهدافهم. تُحفظ عند الخروج من الخانة.',
 
     // predictions
+    'Second round': 'الدور الثاني',
+    'Giza region league, Group 4, 2026/27. Matches played before the game started do not count in the fantasy game.': 'دوري منطقة الجيزة، المجموعة 4، 2026/27. المباريات التي لُعبت قبل بداية اللعبة لا تُحسب في الفانتازي.',
+    'Player with the most points (+3)': 'اللاعب صاحب أعلى نقاط (+3)',
+    'Guess our score first, then theirs. Exact score earns 3 points, the right result (win, draw or loss) earns 1, and picking the player who gets the most fantasy points in the match (not the most goals) earns 3 more. Predictions close at 11:59 PM the day before the match.':
+      'توقّع أهدافنا ثم أهدافهم. النتيجة الصحيحة بالضبط = 3 نقاط، النتيجة الصحيحة (فوز أو تعادل أو خسارة) = نقطة، واختيار اللاعب صاحب أعلى نقاط فانتازي في المباراة (وليس أكثر أهداف) = 3 نقاط إضافية. تُغلق التوقعات 11:59 مساءً قبل يوم المباراة.',
     'Predict the score': 'توقّع النتيجة', 'Predictor table': 'ترتيب التوقعات', 'Locked picks': 'التوقعات المغلقة',
     'Guess our score first, then theirs. Exact score earns 3 points, the right result (win, draw or loss) earns 1, and picking the top fantasy scorer of the match earns 3 more. Predictions close at 11:59 PM the day before the match.':
       'توقّع أهدافنا ثم أهدافهم. النتيجة الصحيحة بالضبط = 3 نقاط، النتيجة الصحيحة (فوز أو تعادل أو خسارة) = نقطة، واختيار أفضل لاعب فانتازي في المباراة = 3 نقاط إضافية. تُغلق التوقعات 11:59 مساءً قبل يوم المباراة.',
