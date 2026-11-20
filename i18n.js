@@ -91,6 +91,7 @@
     'Type the score as our goals, then their goals. It saves when you leave the box.': 'اكتب النتيجة: أهدافنا ثم أهدافهم. تُحفظ عند الخروج من الخانة.',
 
     // predictions
+    'Prediction points': 'نقاط التوقعات',
     'Second round': 'الدور الثاني',
     'Giza region league, Group 4, 2026/27. Matches played before the game started do not count in the fantasy game.': 'دوري منطقة الجيزة، المجموعة 4، 2026/27. المباريات التي لُعبت قبل بداية اللعبة لا تُحسب في الفانتازي.',
     'Player with the most points (+3)': 'اللاعب صاحب أعلى نقاط (+3)',

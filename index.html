@@ -68,7 +68,7 @@ h1,.who b,.sname,.cn{unicode-bidi:plaintext}
 .notice p{margin:0 0 8px;color:var(--muted)}
 .notice p:last-child{margin-bottom:0}
 .btn{border:1px solid var(--line);background:var(--surface);padding:10px 14px;border-radius:7px;font-weight:700;font-size:14px}
-.btn:hover{border-color:var(--ink)}
+@media (hover:hover){.btn:hover{border-color:var(--ink)}}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .btn.danger{color:var(--bad);border-color:var(--bad)}
 .btn.small{padding:6px 10px;font-size:13px}
@@ -92,7 +92,9 @@ textarea{min-height:110px;resize:vertical}
 .board{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .row{display:grid;grid-template-columns:36px minmax(0,1fr) 62px 74px;gap:10px;align-items:center;width:100%;text-align:left;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:transparent}
 .row:last-child{border-bottom:0}
-button.row:hover{background:var(--surface2)}
+@media (hover:hover){button.row:hover{background:var(--surface2)}}
+button,[data-act],select{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button.row:active{background:var(--surface2)}
 .row.head{font:700 11px/1 var(--font-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-block:10px;background:var(--surface2)}
 .row .r{text-align:right}
 .row.ov{grid-template-columns:36px minmax(0,1fr) 74px}
@@ -419,6 +421,7 @@ body{background:var(--bg);padding-top:0}
 @media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}}
 .rules td:first-child{white-space:normal}
 @media (prefers-reduced-motion:no-preference){.pc{transition:transform .12s}.pc:hover{transform:translateY(-2px)}}
+@media (hover:none){.pc:hover{transform:none}}
 .rdhead{margin:18px 0 0;padding:12px 14px;background:linear-gradient(135deg,#37003c,#5a0a6b);color:#fff;font:800 14px/1 var(--font-body);letter-spacing:.08em;text-transform:uppercase;border-radius:10px;border:0}
 .rdhead span{color:#00ff85}
 </style>
@@ -509,9 +512,12 @@ function normTeam(t,players){
   const picks=[...xi.GK,...xi.DEF,...xi.MID,...xi.FWD,...bench];
   return{picks,xi,bench,captain:(t&&t.captain)||null,vice:(t&&t.vice)||null};
 }
+let predHook=null;
+function gwPred(sq,gw){return predHook?predHook(sq,gw):0}
 function gwScore(sq,gw,players,cfg){
   const raw=teamAt(sq,gw.n);
-  if(!raw)return{team:null,rows:[],benchRows:[],base:0,extra:0,hit:0,total:0,capId:null,mult:1};
+  const pred=gwPred(sq,gw);
+  if(!raw)return{team:null,rows:[],benchRows:[],base:0,extra:0,hit:0,pred,total:pred,capId:null,mult:1};
   const team=normTeam(raw,players);
   const chip=chipOf(sq,gw.n);
   const conc=concededOf(gw);
@@ -543,7 +549,7 @@ function gwScore(sq,gw,players,cfg){
   const mult=cr?capMult(cr.slot,chip):1;
   const extra=cr?cr.pts*(mult-1):0;
   const hit=transfersFor(sq,gw.n,cfg).hit;
-  return{team,rows,benchRows,base,extra,hit,total:base+extra-hit,capId,mult,chip};
+  return{team,rows,benchRows,base,extra,hit,pred,total:base+extra-hit+pred,capId,mult,chip};
 }
 function slotFor(p,d,benchN){
   for(const pos of [p.pos,p.alt]){
@@ -779,11 +785,12 @@ function boardView(){
         (ov?'':'<span class="pts sm">'+fpts(m.a)+'</span>')+'<span class="pts">'+fpts(m.b)+'</span></button>'}).join('')+'</div>';
   }
   let winHtml='';
-  if(last&&all.length){
-    const top=Math.max(...all.map(m=>m.per[last.n]||0));
-    const ws=all.filter(m=>(m.per[last.n]||0)===top);
+  const wg=sel==='all'?(last?last.n:null):sel;
+  if(wg!=null&&all.length){
+    const top=Math.max(...all.map(m=>m.per[wg]||0));
+    const ws=all.filter(m=>(m.per[wg]||0)===top);
     if(top>0&&ws.length){
-      winHtml='<div class="gwwin"><div><small><span>'+(ws.length>1?'Gameweek winners (tied)':'Gameweek winner')+'</span> \u00b7 GW '+last.n+'</small>'+ws.map(w=>'<b>\ud83c\udfc6 <bdi>'+esc(w.name)+'</bdi>'+(w.mgr?' <small><bdi>'+esc(w.mgr)+'</bdi></small>':'')+'</b>').join('')+'</div><div class="gwpts">'+fpts(top)+'<small>pts</small></div></div>';
+      winHtml='<div class="gwwin"><div><small><span>'+(ws.length>1?'Gameweek winners (tied)':'Gameweek winner')+'</span> \u00b7 GW '+wg+'</small>'+ws.map(w=>'<b>\ud83c\udfc6 <bdi>'+esc(w.name)+'</bdi>'+(w.mgr?' <small><bdi>'+esc(w.mgr)+'</bdi></small>':'')+'</b>').join('')+'</div><div class="gwpts">'+fpts(top)+'<small>pts</small></div></div>';
     }
   }
   return setupCard()+chips+winHtml+body+(fin.length?'':'<p class="muted" style="margin-top:12px">Points appear here once the admin finalizes a gameweek.</p>');
@@ -1066,6 +1073,11 @@ function predTotal(p,f){
   if(p.pid){const t=topPlayers(f);if(t&&t.ids.includes(p.pid))pl=3}
   return x==null&&!pl?(topPlayers(f)?0:null):(x||0)+pl;
 }
+predHook=(sq,gw)=>{
+  const f=Object.entries(S.fixtures).map(([id,x])=>({...x,id})).find(x=>!x.bye&&x.gw===gw.n);
+  const p=f&&sq.pred&&sq.pred[f.id];
+  return p?(predTotal(p,f)||0):0;
+};
 function predBoard(){
   const fx=fxList().filter(f=>!f.bye&&hasRes(f));
   return Object.entries(S.squads).map(([id,sq])=>{
@@ -1255,7 +1267,7 @@ function sheetView(){
     body='<div class="chips">'+fin.map(x=>fchip('sheet-gw',x.n,'GW '+x.n,x.n===g)).join('')+'</div>'+
       (r.team?pitchHtml(lines,'GW '+g+' · '+fpts(r.total)+' pts'+(r.chip?' · '+(CHIPS.find(c=>c[0]===r.chip)||[0,r.chip])[1]:''))+benchHtml(ben)+
         (r.hit?'<div class="sline"><span>Transfer hit</span><span class="num" style="color:var(--bad)">-'+r.hit+'</span></div>':'')+
-        '<div class="sline"><span>GW '+g+' total</span><span class="num">'+fpts(r.total)+'</span></div>':'<p class="muted">No team was picked for this gameweek.</p>');
+        (r.pred?'<div class="sline"><span>Prediction points</span><span class="num" style="color:var(--good,inherit)">+'+r.pred+'</span></div>':'')+'<div class="sline"><span>GW '+g+' total</span><span class="num">'+fpts(r.total)+'</span></div>':'<p class="muted">No team was picked for this gameweek.</p>');
     const strip=fin.map(x=>'GW '+x.n+': <b>'+fpts(gwScore(sq,x,S.players,S.cfg).total)+'</b>').join(' · ');
     body+='<div class="strip">'+strip+'</div>';
   }else{
@@ -1383,12 +1395,25 @@ function view(){
 
 /* ---------- rendering ---------- */
 function typing(){const a=document.activeElement;return!!(a&&root.contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))}
+let ptrDown=false,lastKey='';
 function render(force){
-  if(!force&&typing()){S.pending=true;return}
+  if(!force&&(typing()||ptrDown)){S.pending=true;return}
   S.pending=false;
-  root.innerHTML=view();
+  const html=view(),key=S.lang+'|'+html;
+  if(!force&&key===lastKey)return;
+  lastKey=key;
+  const y=window.scrollY;
+  root.innerHTML=html;
   applyLang();
+  if(Math.abs(window.scrollY-y)>1)window.scrollTo(0,y);
 }
+function ptrUp(){
+  if(!ptrDown)return;
+  setTimeout(()=>{ptrDown=false;if(S.pending&&!typing())render(false)},250);
+}
+root.addEventListener('pointerdown',()=>{ptrDown=true},true);
+document.addEventListener('pointerup',ptrUp,true);
+document.addEventListener('pointercancel',ptrUp,true);
 function applyLang(){
   const ar=S.lang==='ar';
   root.dir=ar?'rtl':'ltr';root.lang=ar?'ar':'en';
